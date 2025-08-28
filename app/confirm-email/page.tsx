@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -5,9 +7,9 @@ export default function ConfirmEmailPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect after 2 seconds to dashboard/task-dashboard
+    // Redirect after 2 seconds to home
     const timer = setTimeout(() => {
-      router.replace('/dashboard/task-dashboard');
+      router.replace('/');
     }, 2000);
     return () => clearTimeout(timer);
   }, [router]);

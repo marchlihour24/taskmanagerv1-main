@@ -1,6 +1,7 @@
 // ...existing code...
 "use client"
 
+import { useRouter } from "next/navigation"
 import type React from "react"
 
 import { useState } from "react"
@@ -26,6 +27,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
   const [activeTab, setActiveTab] = useState("login");
   const [registerMessage, setRegisterMessage] = useState("");
   const [registerError, setRegisterError] = useState("");
+  const router = useRouter()
 
   // Real login handler using Supabase
   const [welcomeMessage, setWelcomeMessage] = useState("");
@@ -46,7 +48,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
         } else {
           setWelcomeMessage(error?.message || "Login failed. Please check your credentials.");
         }
-        setIsLoading(false);
+  setIsLoading(false);
         return;
       }
       // Fetch user role and full name from public.user table
@@ -76,6 +78,8 @@ export function LoginForm({ onLogin }: LoginFormProps) {
       if (onLogin) {
         onLogin({ name: displayName, role: userRole });
       }
+  // Navigate to dashboard after successful login
+  router.push("/dashboardpage")
     } catch (err) {
       console.error("Login error:", err); // Log error for debugging
       setWelcomeMessage("Login failed. Please try again.");
@@ -115,6 +119,8 @@ export function LoginForm({ onLogin }: LoginFormProps) {
           if (onLogin) {
             onLogin({ name: fullName || "Demo Guest", role: role as "guest" | "user" });
           }
+          // Optional: navigate to dashboard after registration
+          router.push("/dashboardpage")
         }
       }
     } catch (err: any) {

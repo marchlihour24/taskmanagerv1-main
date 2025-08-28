@@ -1,25 +1,26 @@
 "use client"
 
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { usePermissions } from "@/hooks/use-permissions"
-// ...existing code...
-import { TaskProvider } from "@/components/tasks/task-provider"
-import { TaskList } from "@/components/tasks/task-list"
-import { TaskForm } from "@/components/tasks/task-form"
-import { CalendarView } from "@/components/calendar/calendar-view"
-
 import { RealtimeNotifications } from "@/components/realtime/realtime-notifications"
 import { UserPresence } from "@/components/realtime/user-presence"
-import { LogOut, Plus, Calendar, List, Users, Shield, Wifi, Home } from "lucide-react"
+import { TaskForm } from "@/components/tasks/task-form"
+import { usePermissions } from "@/hooks/use-permissions"
+import { LogOut, Plus, Calendar, List, Home, Shield, Wifi } from "lucide-react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 
-function DashboardContent({ user, onSignOut }: { user: { name: string, role?: string } | null, onSignOut: () => void }) {
-  // Get permissions based on user role
+interface AppLayoutProps {
+  user: { name: string; role: "guest" | "user" }
+  onSignOut: () => void
+  children: React.ReactNode
+}
+
+export function AppLayout({ user, onSignOut, children }: AppLayoutProps) {
+  const pathname = usePathname()
   const permissions = usePermissions(user?.role)
-  const [activeView, setActiveView] = useState<"list" | "calendar">("list")
-  const logout = onSignOut
+
+  const isActive = (path: string) => pathname === path
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -27,7 +28,11 @@ function DashboardContent({ user, onSignOut }: { user: { name: string, role?: st
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-gray-900">Task Manager</h1>
+            <Link href="/">
+              <h1 className="text-2xl font-bold text-gray-900 hover:text-gray-700 cursor-pointer">
+                Task Manager
+              </h1>
+            </Link>
             <Badge variant={user?.role === "user" ? "default" : "outline"}>
               <Shield className="h-3 w-3 mr-1" />
               {user?.role}
@@ -41,7 +46,7 @@ function DashboardContent({ user, onSignOut }: { user: { name: string, role?: st
           <div className="flex items-center gap-4">
             <RealtimeNotifications />
             <span className="text-sm text-gray-600">Welcome, {user?.name}</span>
-            <Button variant="outline" size="sm" onClick={logout}>
+            <Button variant="outline" size="sm" onClick={onSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
             </Button>
@@ -65,20 +70,37 @@ function DashboardContent({ user, onSignOut }: { user: { name: string, role?: st
             )}
 
             <nav className="space-y-2">
+              <Link href="/">
+                <Button 
+                  variant="ghost" 
+                  className={`w-full justify-start ${
+                    isActive("/") ? "bg-[#F6CEB9] text-gray-900" : ""
+                  }`}
+                >
+                  <Home className="h-4 w-4 mr-2" />
+                  Dashboard
+                </Button>
+              </Link>
+              
               <Link href="/tasklist">
                 <Button
                   variant="ghost"
-                  className={`w-full justify-start ${activeView === "list" ? "bg-[#F6CEB9] text-gray-900" : ""}`}
+                  className={`w-full justify-start ${
+                    isActive("/tasklist") ? "bg-[#F6CEB9] text-gray-900" : ""
+                  }`}
                 >
                   <List className="h-4 w-4 mr-2" />
                   Task List
                 </Button>
               </Link>
+              
               {permissions.canAccessCalendar && (
                 <Link href="/calendarview">
                   <Button
                     variant="ghost"
-                    className={`w-full justify-start ${activeView === "calendar" ? "bg-[#F6CEB9] text-gray-900" : ""}`}
+                    className={`w-full justify-start ${
+                      isActive("/calendarview") ? "bg-[#F6CEB9] text-gray-900" : ""
+                    }`}
                   >
                     <Calendar className="h-4 w-4 mr-2" />
                     Calendar View
@@ -94,32 +116,10 @@ function DashboardContent({ user, onSignOut }: { user: { name: string, role?: st
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                {activeView === "list" ? "All Tasks" : "Calendar View"}
-              </h2>
-              <p className="text-gray-600">
-                {activeView === "list"
-                  ? "Manage and track your tasks efficiently with real-time updates"
-                  : "View your tasks in a calendar format with live sync"}
-              </p>
-            </div>
-
-            {activeView === "list" && <TaskList userRole={user?.role} />}
-            {activeView === "calendar" && permissions.canAccessCalendar && <CalendarView />}
-          </div>
+        <main className="flex-1">
+          {children}
         </main>
       </div>
     </div>
-  )
-}
-
-export function TaskDashboard({ user, onSignOut }: { user: { name: string, role?: string } | null, onSignOut: () => void }) {
-  return (
-    <TaskProvider>
-      <DashboardContent user={user} onSignOut={onSignOut} />
-    </TaskProvider>
   )
 }
